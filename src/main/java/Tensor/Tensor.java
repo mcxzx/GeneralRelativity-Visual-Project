@@ -35,7 +35,7 @@ public class Tensor {
     }
     
     public static float[] add(float[][] T){
-        float[] ret = T[0];
+        float[] ret = Arrays.copyOf(T[0],T[0].length);
         for(int i=1;i<T.length;i++){
             ret=add(ret,T[i]);
         }
@@ -48,6 +48,31 @@ public class Tensor {
             ret[i]=a*T[i];
         }
         return ret;
+    }
+    
+    public static float[] directSum(float[] T1,float[] T2){
+        int l = T1.length;
+        float[] ret = Arrays.copyOf(T1,l+T2.length);
+        
+        for(int i=l+T2.length-1;i>=l;i--){
+            ret[i] = T2[i-l];
+        }
+        
+        return ret;
+    }
+    
+    public static float[] directSum(float[][] Ts){
+        int l = Ts.length;
+        switch (l) {
+            case 2:
+                return directSum(Ts[0],Ts[1]);
+            case 1:
+                return Ts[0];
+            case 0:
+                return new float[0];
+            default:
+                return directSum(directSum(Arrays.copyOfRange(Ts,0,l/2)),directSum(Arrays.copyOfRange(Ts,l/2,l)));
+        }
     }
     
     private static int convertComponet(int[] Ti,int[] pos){
@@ -63,6 +88,27 @@ public class Tensor {
             }
             if(Ti[i]<=0){
                 throw new TensorIndexesInvalidException();
+            }
+        }
+        return p;
+    }
+    
+    public static float[] flatten(float[][] Mat){
+        int h = Mat.length,l = Mat[0].length;
+        float[] ret = new float[h*l];
+        for(int i=h*l-1;i>=0;i--){
+            ret[i] = Mat[i/l][i%l];
+        }
+        return ret;
+    }
+    
+    private static int convertComponet4(int[] pos){
+        int p = 0,j=1;
+        for(int i = pos.length-1;i>=0;i--){
+            p+=j*pos[i];
+            j*=4;
+            if(pos[i]<0||pos[i]>4){
+                throw new ComponetIndexesInvalidException(i,pos[i],4);
             }
         }
         return p;
@@ -179,6 +225,96 @@ public class Tensor {
         return ret;
     }
     
+    public static float[] product(float[] T1,float[] T2){
+        int l1= T1.length,l2= T2.length;
+        float[] T1T2 = new float[l1*l2];
+        for(int i=l1-1;i>=0;i--){
+            for(int j=l2-1;j>=0;j--){
+                T1T2[i*l2+j]=T1[i]*T2[j];
+            }
+        }
+        return T1T2;
+    }
+    
+    public static float[] MatrixV4(float[] M,float[] v){
+        int l= M.length/4;
+        float[] Mv = new float[l];
+        for(int i=l-1;i>=0;i--){
+            for(int j=0;j<4;j++){
+                Mv[i]+=M[i*4+j]*v[j];
+            }
+        }
+        return Mv;
+    }
+    
+    public static float[] VMatrix4(float[] v,float[] M){
+        int l= M.length/4;
+        float[] vM = new float[l];
+        for(int i=l-1;i>=0;i--){
+            for(int j=0;j<4;j++){
+                vM[i]+=v[j]*M[j*4+i];
+            }
+        }
+        return vM;
+    }
+    
+    //specialized for spacetime(4) componets
+    public static float[] product4(float[] M,float[] N,int[] cont/*contraction indexes, writen in [i1,j1,i2,j2,...]*/){
+        int numEle,idx,numM=M.length,numN=N.length,numC=(int)Math.pow(4,cont.length/2),Mi=(int)(Math.log(M.length)/Math.log(4)),Ni=(int)(Math.log(N.length)/Math.log(4));
+        int[] pos=new int[Mi+Ni-cont.length],pos2=new int[cont.length/2],posm=new int[Mi],posn=new int[Ni];
+        
+        if(cont.length%2!=0){
+            throw new ContractionListInvalidException();
+        }
+        numEle=numM*numN/numC/numC;
+        float[] ret = new float[numEle];
+        for(int i=0;i<numEle;i++){
+            Arrays.fill(pos2,0);
+            for(int l=0;l<numC;l++){
+                Arrays.fill(posm,-1);
+                Arrays.fill(posn,-1);
+                for(int k=0;k<cont.length/2;k++){
+                    posm[cont[2*k]]=pos2[k];
+                    posn[cont[2*k+1]]=pos2[k];
+                }
+                idx=0;
+                for(int k=0;k<Mi;k++){
+                    if(posm[k]==-1){
+                        posm[k]=pos[idx];
+                        idx++;
+                    }
+                }
+                for(int k=0;k<Ni;k++){
+                    if(posn[k]==-1){
+                        posn[k]=pos[idx];
+                        idx++;
+                    }
+                }
+                ret[convertComponet4(pos)]+=M[convertComponet4(posm)]*N[convertComponet4(posn)];
+                
+                if(pos2.length!=0){pos2[pos2.length-1]++;}
+                for(int j=pos2.length-1;j>0;j--){
+                    if(pos2[j]==4){
+                        pos2[j]=0;
+                        pos2[j-1]++;
+                    }
+                }
+            }
+            if(pos.length!=0){pos[pos.length-1]++;}
+            for(int j=pos.length-1;j>0;j--){
+                if(pos[j]==4){
+                    pos[j]=0;
+                    pos[j-1]++;
+                }
+            }
+        }
+        return ret;
+    }
+    
+    //public static int[] selfContract()
+    
+    //end
+    
     private static int[] PermutationAction(int[] permutation,int[] array){
         int l = array.length;
         int[] ret = new int[l];
@@ -226,6 +362,42 @@ public class Tensor {
             }
         }
         return ret;
+    }
+    
+    public static float[][] Transpose(float[][] M){
+        int h = M.length,l=M[0].length;
+        float[][] ret = new float[l][h];
+        for(int i=l-1;i>=0;i--){
+            for(int j=h-1;j>=0;j--){
+                ret[i][j] = M[j][i];
+            }
+        }
+        return ret;
+    }
+    
+    public static float[] Transpose4(float[] T,int[] per){
+        int l = (int)(Math.log(T.length)/Math.log(4)),numEle=(int)Math.pow(4, l);
+        int[] pos = new int[l];
+        float[] ret = new float[numEle];
+        while(pos[0]<4){
+            ret[convertComponet4(PermutationAction(per,pos))] = T[convertComponet4(pos)];
+            if(l>0){pos[l-1]++;}
+            for(int i=l-1;i>0;i--){
+                if(pos[i]==4){
+                    pos[i]=0;
+                    pos[i-1]++;
+                }
+            }
+        }
+        return ret;
+    }
+    
+    public static float[] TransposeMat(float[] M,int a,int b){
+        float[] MT = new float[a*b];
+        for(int i=0;i<a*b;i++){
+            MT[(i%b)*a+i/b] = M[i];
+        }
+        return MT;
     }
     
     public static float[] IdentityMatrix(int dim){
@@ -276,6 +448,138 @@ public class Tensor {
         }
         return ret;
     }
+    
+    public static final float[] LC4 = LeviCivitaSymbol(4);
+    public static final float[] I4 = IdentityMatrix(4);
+    public static final float[] LC3 = LeviCivitaSymbol(3);//Also the strcutural constants of SO(3), SU(2), SL(2,C)
+    
+    public static float[] LorentzGroupBoost(float[] V){//input a 3 vector as boost transformation velocity vector
+        float v = Tensor.contract(V,V), gamma = 1/(float)Math.sqrt(1-v);
+        if(v==0){return I4;}
+        float[] V4 = Tensor.directSum(new float[]{0},V);
+        float[] ret = Tensor.add(Tensor.product(V4,Tensor.scale((gamma-1)/v,V4)),Tensor.I4);
+        ret = Tensor.add(Tensor.add(ret,Tensor.scale(-gamma,V4)),Tensor.TransposeMat(Tensor.directSum(Tensor.scale(-gamma,V4),new float[12]), 4, 4));
+        
+        return Tensor.add(ret,new float[]{gamma-1});
+    }
+    
+    public static float[][] frameOp(float[] M,float[][] e){
+        float[][] ret = new float[e.length][e[0].length];
+        for(int i=e.length-1;i>=0;i--){
+            for(int j=e[0].length-1;j>=0;j--){
+                for(int k=e.length-1;k>=0;k--){
+                    ret[i][j]+=M[i*e.length+k]*e[k][j];
+                }
+            }
+        }
+        return ret;
+    }
+    
+    
+    public static float determinant(float[] M){
+        int dim = (int)Math.sqrt(M.length);
+        float[] amputate = Arrays.copyOfRange(M,0,dim);
+        for(int i=1;i<dim;i++){
+            amputate = Tensor.product(amputate,Arrays.copyOfRange(M,i*dim,i*dim+dim));
+        }
+        return Tensor.contract(Tensor.LeviCivitaSymbol(dim),amputate);
+    }
+    
+    public static float determinant4(float[] M){
+        float[] amputate = Arrays.copyOfRange(M,0,4);
+        for(int i=1;i<4;i++){
+            amputate = Tensor.product(amputate,Arrays.copyOfRange(M,i*4,i*4+4));
+        }
+        return Tensor.contract(Tensor.LC4,amputate);
+    }
+    
+    public static float[] AdjugateMat4(float[] M){
+        float[] adj = new float[16],amputate;
+        int sgn;
+        for(int i=0;i<4;i++){
+            for(int j=0;j<4;j++){
+                sgn = ((i+j)%2==0?1:-1);
+                amputate = new float[]{1};
+                for(int k=0;k<4;k++){
+                    if(k!=j){
+                        amputate = Tensor.product(amputate,Tensor.directSum(Arrays.copyOfRange(M,k*4,i+k*4),Arrays.copyOfRange(M,i+1+k*4,4+k*4)));
+                        
+                    }
+                }
+                adj[i*4+j]=sgn*Tensor.contract(LC3,amputate);
+            }
+        }
+        return adj;
+    }
+    
+    public static float[] MatrixA(float[][] M,float[] v){
+        float[] ret = new float[M.length];
+        for(int i = M.length-1;i>=0;i--){
+            for(int j = v.length-1;j>=0;j--){
+                ret[i]+=M[i][j]*v[j];
+            }
+        }
+        return ret;
+    }
+    
+    public static float[] normalize(float[] metric,float[] v){
+        float V = (float)Math.sqrt(Math.abs(Tensor.contract(metric,Tensor.product(v,v))));
+        if(V!=0){
+            return Tensor.scale(1/V,v);
+        }else{
+            return new float[v.length];
+        }
+    }
+    
+    public static float[] complexMultiply(float re,float im,float[] T){
+        int l = T.length/2;
+        float[] ret = new float[l];
+        for(int i=l-1;i>=0;i--){
+            ret[i] = re*T[i]-im*T[i+l];
+            ret[i+l] = re*T[i+l]+im*T[i];
+        }
+        return ret;
+    }
+    
+    //Local compatible
+    public static float contract(float[] A,float[] B){
+        float ret = 0;
+        for(int i=Math.min(A.length,B.length)-1;i>=0;i--){
+            ret+=A[i]*B[i];
+        }
+        return ret;
+    }
+    
+    
+    
+    
+    
+    //String monid module operation
+    /*
+    Note: Noticed the concatenate operation forms a associative non-commutative operation on the set of finite Strings, it makes the set of finite Strings as a monid
+    The array of finite Strings thus being a bi-algebra on this monid    
+    */
+    public static String[] concatenate(String a,String[] S){//Left action of the monid
+        String[] aS = new String[S.length];
+        for(int i=S.length-1;i>=0;i--){
+            aS[i] = a+S[i];
+        }
+        return aS;
+    }
+    public static String[] concatenate(String[] S,String a){//Right action of the monid
+        String[] Sa = new String[S.length];
+        for(int i=S.length-1;i>=0;i--){
+            Sa[i] = S[i]+a;
+        }
+        return Sa;
+    }
+    public static String[] directSum(String[] S1,String[] S2){
+        String[] S1OS2 = new String[S1.length+S2.length];
+        System.arraycopy(S1,0,S1OS2,0,S1.length);
+        System.arraycopy(S2,0,S1OS2,S1.length,S2.length);
+        return S1OS2;
+    }
+    
     
 }
 
