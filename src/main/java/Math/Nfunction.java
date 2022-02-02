@@ -22,7 +22,7 @@ public class Nfunction{//As a R-algebra
     
     public float derivative(float[] var,int idx){
         float[] Dvar = Arrays.copyOf(var,var.length);
-        Dvar[idx]=(Math.abs(var[idx])<1.0f?var[idx]+epsilon:var[idx]*epsilon);
+        Dvar[idx]=(Math.abs(var[idx])<1.0f?var[idx]+(epsilon-1):var[idx]*epsilon);
         return (evaluate(Dvar)-evaluate(var))/(Dvar[idx]-var[idx]);
     }
     
