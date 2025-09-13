@@ -64,7 +64,7 @@ With its all due functionality and as barebones as it looks, it was originally d
 
 ![A screenshot of a simulated fast(close to speed of light) moving object](/assets/SoftwareScreenshot%20(6).png)
 ![A screenshot of a simulated a mildly moving object(means it returns to coincide with classical newtonian spacetime philosophy)](/assets/SoftwareScreenshot%20(7).png)
-> A screenshots of simulated fast and mildly moving objects(means it returns to coincide with classical newtonian spacetime philosophy)
+> Screenshots of simulated fast and mildly moving objects(means it returns to coincide with classical newtonian spacetime philosophy)
 
 
 
