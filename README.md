@@ -6,16 +6,17 @@ aimed for simulations/rendering of physically accurate visuals in general curved
 
 
 ![A screenshot of a simulated blackhole](/assets/SoftwareScreenshot%20(1).png)
-> A screenshot of a simulated blackhole \
+> A screenshot of a simulated blackhole
 
 Once there was a joke: a numerical relativity (finite-element) simulation graduate student always liked to share some nice pictures on computational relativity seminars--
  For example: this is the scenery of two blackholes emerges -- one sees two orange discs start surrounds each other, twisted, and broke into many parts.
- Nobody could say it is not enjoyable... until someone asks:\
+ Nobody could say it is not enjoyable... until someone asks:
+
+ 
  > "what exactly does this picture represents"\
  > "... well, that's just a visualization of two blackholes emerging"\
  > "then what does it _physically_ visualizes?"\
  You see the problem? ~~Not quite~~\
-\
 \
 Yes! Relativity is relative! Space-time division is relative and observer dependent! The "Space" and the "Moment" in the simulation is just verbatim transfer of the 3+1 space-time decomposition coordinate his finite-element simulation happens to use.
  In actual cases, all valid 3+1 decomposition of spacetime have space slice being "spacelike"(i.e. equal-time-hypersurface has postive definite metric restriction), but in actual cases a physical observer(like you!) sees the lights from the past comming towards its locus of observation, in this case, the space one "see" is at most light-like(metric restriction degerates).
@@ -24,10 +25,9 @@ Yes! Relativity is relative! Space-time division is relative and observer depend
 
 
 
-Well, what I did here is more or less an avoidance-inspiration from that anecdote. What one sees in this program are actually physical light rays comming from the past. As people in the Academia would put:\
+Well, what I did here is more or less an avoidance-inspiration from that anecdote. What one sees in this program are actually physical light rays comming from the past. As people in the Academia would put:
 
-It renders the visual through geodesic ray tracing, which faithfully describes the geometric-optics-order approximation of electromagnetic waves coupled with most geometric-dynamical gravity theory that relies on the metric,
-which General Relativity and Einstein-Cartan Theory are the primary examples, and so as some class of f(R)/tensor-gravity theory.
+> It renders the visual through geodesic ray tracing, which faithfully describes the geometric-optics-order approximation of electromagnetic waves coupled with most geometric-dynamical gravity theory that relies on the metric, which General Relativity and Einstein-Cartan Theory are the primary examples, and so as some class of f(R)/tensor-gravity theory.
 
 
 Well, if you are already half feet out in the physics, why not make everything as authentic as possible? For that matter, the colour of this engine are specifically represented spectrally -- a literal spectral density in light frequencies, with object encoding the spectrum they emit, spectrum they absorb, and spectrum they reflect/diffuses
@@ -46,19 +46,19 @@ With its all due functionality and as barebones as it looks, it was originally d
 
 # Some simulation showcases
 ![A screenshot of the software. My poor old laptop is on fire!<sub>這就叫炎上，不是嗎？XD || since this old laptop carries a core GPU, GPU acceleration is not supported :( </sub>](/assets/SoftwareScreenshot%20(8).png)
-> A screenshot of the software. My poor old laptop is on fire!<sub>這就叫炎上，不是嗎？XD || since this old laptop carries a core GPU, GPU acceleration is not supported :( </sub> \
-\
+> A screenshot of the software. My poor old laptop is on fire!<sub>這就叫炎上，不是嗎？XD || since this old laptop carries a core GPU, GPU acceleration is not supported :( </sub> 
+
 
 
 ![A screenshot of a simulated blackhole](/assets/SoftwareScreenshot%20(2).png)
 ![A screenshot of a simulated blackhole](/assets/SoftwareScreenshot%20(3).png)
-![A screenshot of the same simulated blackhole](/assets/SoftwareScreenshot%20(4).png)\
-> Three screenshots of a simulated blackhole, with accretion disc placed at different radius and observe in different places\
+![A screenshot of the same simulated blackhole](/assets/SoftwareScreenshot%20(4).png)
+> Three screenshots of a simulated blackhole, with accretion disc placed at different radius and observe in different places
 
 
 
 ![A screenshot of the same simulated blackhole, only now higher-resolutioned](/assets/SoftwareScreenshot%20(5).png)
-> A screenshot of the same simulated blackhole, only now higher-resolutioned\
+> A screenshot of the same simulated blackhole, only now higher-resolutioned
 
 
 
@@ -75,7 +75,7 @@ To know how to use this program in oneself's fullest freedom of assembling space
 ## Mathematical Representation
 The underlying mathematical formulation uses `class Math/Nfunction` (i.e. numerical functions) to represent functions, with a `float evaluation(float[])` method to be overridden by specific implementations. It is designed in the fullest theoretical generality; however, it is desired to have Nfunction's evaluation method being very efficient, as it will be evaluated extremely frequently during rendering. One could also write support for different interpolation of data array methods converting them into Nfunctions. If I'll be updating this project, I'll include this interface.\
 Similarly, there is `class Math/Bfunction` for boolean function in float array parameters, typically designed to indicate the coordinate chart cover range.\
-Tensors are represented in `class Math/Ntensor`, with all corresponding tensor operations needed implemented(such as gradient, inverse, Levi-Civita Symbol, etc. Many more detailed tensor constant/operations are implemented in `class Tensor/Tensor`).\
+Tensors are represented in `class Math/Ntensor`, with all corresponding tensor operations needed implemented(such as gradient, inverse, Levi-Civita Symbol, etc. Many more detailed tensor constant/operations are implemented in `class Tensor/Tensor`).
 
 ## Colo(u)r Representation
 The colours are represented by a spectral density function over strength, as implmented in `class WColor/WColor`, with also implementation of conversion from spectral density to RGB colours according to human's cone cell's spectral response curve.\
